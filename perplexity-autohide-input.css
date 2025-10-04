@@ -1,0 +1,73 @@
+/* Perplexity.com - Auto-hide Input Textbox */
+/* Use with Stylus extension: https://add0n.com/stylus.html */
+
+/* Target the main input container */
+div[class*="erp-sidecar:fixed"][class*="bottom-safeAreaInsetBottom"] {
+    /* Hide by default - slide down out of view */
+    transform: translateY(100%);
+    transition: transform 0.3s ease-in-out;
+    opacity: 0.1;
+}
+
+/* Show when hovering over the bottom area of the page */
+/* Create a hover zone at the bottom */
+body::after {
+    content: "";
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px; /* Adjust this height for the hover trigger zone */
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* Alternative approach: Show on hover over the hidden container itself */
+div[class*="erp-sidecar:fixed"][class*="bottom-safeAreaInsetBottom"]:hover {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Show when hovering near the bottom of the viewport */
+body:hover div[class*="erp-sidecar:fixed"][class*="bottom-safeAreaInsetBottom"] {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* More specific trigger: Show when mouse is in bottom 150px of screen */
+@media (hover: hover) {
+    /* Create invisible hover trigger at bottom */
+    body {
+        position: relative;
+    }
+    
+    body::before {
+        content: "";
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 150px;
+        z-index: 1;
+        pointer-events: auto;
+    }
+    
+    body::before:hover ~ * div[class*="erp-sidecar:fixed"][class*="bottom-safeAreaInsetBottom"],
+    body:hover div[class*="erp-sidecar:fixed"][class*="bottom-safeAreaInsetBottom"] {
+        transform: translateY(0) !important;
+        opacity: 1 !important;
+    }
+}
+
+/* Ensure the input is accessible when focused */
+div[class*="erp-sidecar:fixed"][class*="bottom-safeAreaInsetBottom"]:focus-within {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+}
+
+/* Keep visible when actively typing */
+div[class*="erp-sidecar:fixed"][class*="bottom-safeAreaInsetBottom"] textarea:focus,
+div[class*="erp-sidecar:fixed"][class*="bottom-safeAreaInsetBottom"] input:focus {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+}
