@@ -24,7 +24,7 @@ A userscript that auto-hides the Perplexity chat input textbox and header to sav
    - [Firefox](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/)
 
 2. **Install the userscript**:
-   - Click here: [**Install perplexity-autohide-input.user.js**](https://github.com/YOUR_USERNAME/perplexity-autohide-userscript/raw/main/perplexity-autohide-input.user.js)
+   - Click here: [**Install perplexity-autohide-input.user.js**](https://github.com/limbertin/perplexity-autohide-userscript/raw/main/perplexity-autohide-input.user.js)
    - Or manually: Copy the code from `perplexity-autohide-input.user.js` → Violentmonkey Dashboard → "+" → Paste → Save
 
 3. **Visit Perplexity.ai** and enjoy the extra screen space!
