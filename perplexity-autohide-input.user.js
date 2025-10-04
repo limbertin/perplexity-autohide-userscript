@@ -148,14 +148,29 @@
     function isInputActive(container) {
         const textarea = container.querySelector('textarea');
         const input = container.querySelector('input[type="text"]');
-        
-        if (textarea && (document.activeElement === textarea || textarea.value.trim())) {
+
+        // Check if any input element within the container is focused
+        const focusedElement = document.activeElement;
+        const isInputFocused = container.contains(focusedElement) &&
+                              (focusedElement.tagName === 'TEXTAREA' ||
+                               focusedElement.tagName === 'INPUT' ||
+                               focusedElement.contentEditable === 'true');
+
+        if (textarea && (isInputFocused || textarea.value.trim())) {
             return true;
         }
-        if (input && (document.activeElement === input || input.value.trim())) {
+        if (input && (isInputFocused || input.value.trim())) {
             return true;
         }
-        return false;
+
+        return isInputFocused;
+    }
+
+    // Check if mouse is in bottom area of screen
+    function isMouseInBottomArea(event) {
+        const windowHeight = window.innerHeight;
+        const mouseY = event.clientY;
+        return mouseY > (windowHeight - HOVER_ZONE_HEIGHT);
     }
     
     // Initialize the auto-hide functionality
@@ -200,54 +215,106 @@
 
         let isHovering = false;
         let hideTimeout;
+        let forceHidden = false;
 
         // Show on hover zone enter
         hoverZone.addEventListener('mouseenter', () => {
-            isHovering = true;
-            clearTimeout(hideTimeout);
-            showInput(container);
+            if (!forceHidden) {
+                isHovering = true;
+                clearTimeout(hideTimeout);
+                showInput(container);
+                console.log('Input shown - hover zone entered');
+            }
         });
 
         // Hide on hover zone leave (with delay)
         hoverZone.addEventListener('mouseleave', () => {
             isHovering = false;
             hideTimeout = setTimeout(() => {
-                if (!isHovering && !isInputActive(container)) {
+                if (!isHovering && !isInputActive(container) && !forceHidden) {
                     hideInput(container);
+                    console.log('Input hidden - hover zone left');
                 }
             }, 500); // 500ms delay before hiding
         });
 
         // Show on container hover
         container.addEventListener('mouseenter', () => {
-            isHovering = true;
-            clearTimeout(hideTimeout);
-            showInput(container);
+            if (!forceHidden) {
+                isHovering = true;
+                clearTimeout(hideTimeout);
+                showInput(container);
+                console.log('Input shown - container hovered');
+            }
         });
 
         // Hide on container leave
         container.addEventListener('mouseleave', () => {
             isHovering = false;
             hideTimeout = setTimeout(() => {
-                if (!isHovering && !isInputActive(container)) {
+                if (!isHovering && !isInputActive(container) && !forceHidden) {
                     hideInput(container);
+                    console.log('Input hidden - container left');
                 }
             }, 500);
         });
 
         // Always show when input is focused
         container.addEventListener('focusin', () => {
+            forceHidden = false; // Reset force hidden when user focuses input
             clearTimeout(hideTimeout);
             showInput(container);
+            console.log('Input shown - focused');
         });
 
         // Check if should hide when focus is lost
         container.addEventListener('focusout', () => {
             setTimeout(() => {
-                if (!isHovering && !isInputActive(container)) {
+                if (!isHovering && !isInputActive(container) && !forceHidden) {
                     hideInput(container);
+                    console.log('Input hidden - focus lost');
                 }
             }, 200);
+        });
+
+        // Add click handler to document to hide input when clicking outside
+        document.addEventListener('click', (event) => {
+            // If clicking outside the container and hover zone
+            if (!container.contains(event.target) && !isMouseInBottomArea(event)) {
+                // Only force hide if not currently typing
+                if (!isInputActive(container)) {
+                    forceHidden = true;
+                    clearTimeout(hideTimeout);
+                    hideInput(container);
+                    console.log('Input force hidden - clicked outside');
+
+                    // Reset force hidden after a delay to allow normal hover behavior
+                    setTimeout(() => {
+                        forceHidden = false;
+                    }, 1000);
+                }
+            }
+        });
+
+        // Add global mouse move handler for better hover detection
+        let mouseMoveTimeout;
+        document.addEventListener('mousemove', (event) => {
+            clearTimeout(mouseMoveTimeout);
+            mouseMoveTimeout = setTimeout(() => {
+                const inBottomArea = isMouseInBottomArea(event);
+
+                if (!inBottomArea && !container.contains(event.target) && !isInputActive(container) && !forceHidden) {
+                    // Mouse is not in bottom area and not over container
+                    isHovering = false;
+                    clearTimeout(hideTimeout);
+                    hideTimeout = setTimeout(() => {
+                        if (!isHovering && !isInputActive(container) && !forceHidden) {
+                            hideInput(container);
+                            console.log('Input hidden - mouse moved away from bottom area');
+                        }
+                    }, 800); // Longer delay for mouse move
+                }
+            }, 100); // Debounce mouse move events
         });
     }
 
